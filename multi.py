@@ -132,7 +132,7 @@ def find_integer_combinations(n, total_sum):
                 combinations.append(curr_combination)
             continue
 
-        for i in range(min(11, curr_sum + 1)):
+        for i in range(min(total_sum+1, curr_sum + 1)):
             stack.append((curr_sum - i, curr_n - 1, curr_combination + [i]))
 
     return combinations
