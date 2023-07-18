@@ -170,6 +170,11 @@ def find_terms(expression,alter_variable,rest_var_list):
         # 把term的系数取出来，as_coeff_mul()返回一个元组
         # coefficient = term.as_coeff_mul()[0]
         others,coefficient = term.as_independent(alter_variable)
+        coeff_dict = others.as_coefficients_dict()
+        first_value = next(iter(coeff_dict.values()))
+        if first_value.is_negative:
+            coefficient = -coefficient
+        print("term = ",term,"others = ",others,"coefficient = ",coefficient)
         powers = [others.as_powers_dict().get(var, 0) for var in rest_var_list]
         coef.append(coefficient)
         for pow in powers:
@@ -286,7 +291,8 @@ GH = homogeneous.homogeneous(G)
 print("GH = ",GH)
 
 # 固定某个变量作为常数，用辅助变量v0替换它的位置
-alter_variable = x
+alter_variable = y
+
 GH_aux = homogeneous.alter(GH,alter_variable)
 print("GH_aux = ",GH_aux)
 
@@ -318,7 +324,7 @@ print("cG  = ",cG)
 M = getM(dG,cG)
 print("------------------------------M-------------------------------")
 print("M =",M)
-print("type of M = ",type(M))
+# print("type of M = ",type(M))
 # print("det(M) = ",np.linalg.det(M))
 
 # 解线性方程组
@@ -331,22 +337,31 @@ print("rows = ",rows,"cols = ",cols)
 # A = Matrix((ros+1,cols+1))
 v = symbols('v')
 A = zeros(rows+1,cols+1)
-print("type of A = ",type(A),"type of M = ",type(M))
-print("A = ",A)
+# print("type of A = ",type(A),"type of M = ",type(M))
+print("init A = ",A)
 def generate_A(M):
     rows,cols = M.shape
     A = zeros(rows+1,cols+1)
-    nullspace_basis = M.nullspace()
-    if nullspace_basis == []:
-        c = 1
+    nullspace = M.nullspace()
+    if nullspace == []:
+        c = 0.1
         # a = Matrix([round(random.uniform(-c, c),2) for _ in range(rows)])
         # b = Matrix([round(random.uniform(-c, c),2) for _ in range(cols)])
+        # a = zeros(rows,1)
+        # b = zeros(cols,1)
+        # a[rows-1] =1
+        # b[cols-1] =10
         a = ones(rows,1)
         b = ones(cols,1)
+        print("a:")
+        pprint(a)
+        print("b:")
+        pprint(b)
         A[0:rows,0:cols] = M[:,:]
         A[0:rows,cols:cols+1] = a
         A[rows:rows+1,0:cols] = b.T
-
+    else:
+        print("矩阵的核不是零向量,找ab的函数还没有写")
     return A
 
 # 当M的核是零向量的时候，a和b都是随机生成的，这会导致解出的t每次都不一样
@@ -356,15 +371,18 @@ A = generate_A(M)
 b = zeros(rows+1,1)
 b[rows] = 1
 pprint(b)
+print("rank of A = ",A.rank())
+pprint(A)
 sol = A.solve(b)
 # pprint(sol)
 t = sol[rows]
 print("t =",t)
+plot(t, (alter_variable, -1, 1))
 solu = list()
-for value in np.arange(-1,1,0.05):
-    result = t.subs(x,value)
-    pre = result
-    after = t.subs(x,value+0.05)
+for value in np.arange(-1,1,0.01):
+    result = t.subs(alter_variable,value)
+    # pre = result
+    # after = t.subs(alter_variable,value+0.05)
     # print("Pre = ",pre,"after = ",after)
     # if pre*after < 0:
     #     solu.append(secant(t,x,pre,after,100))
