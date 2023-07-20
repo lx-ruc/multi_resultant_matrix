@@ -14,16 +14,66 @@ init_printing(use_unicode=True)
 # 输入多项式系统（n个变量n个方程），得到每个方程的degree：ri和系数、
 
 # 2004年论文的第一个例子
-x,y,z = symbols('x y z')
-G1 = x**2 + y**2 + z**2 -1
-G2 = z - x**2 - y**2
-G3 = y - x**2 -z**2
-variables = [x,y,z]
-G = [
-    G1,
-    G2,
-    G3
-] 
+# x,y,z = symbols('x y z')
+# G1 = x**2 + y**2 + z**2 -1
+# G2 = z - x**2 - y**2
+# G3 = y - x**2 -z**2
+# variables = [x,y,z]
+# G = [
+#     G1,
+#     G2,
+#     G3
+# ] 
+
+# 三层博弈树
+N = [
+    [0 ,0,0 ,0 ,0 ,0 ,0 ,1 ,-1, -1, 1, 0, 0, 0, 0],
+    [0 ,0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0],
+    [0 ,0 ,0 ,0 ,0 ,-10, 100, 0, 1, 0, -1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1, -1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1],
+    [0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1],
+    [0, 0, -100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1],
+    [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [-1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, -1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+]
+bb = [0,0,0,0,0,0,0,1,0,-1,0,1,0,-1,0]
+N = Matrix(N)
+bb = Matrix(bb)
+print("N = ")
+pprint(N)
+print("bb = ")
+pprint(bb)
+
+N_rows,N_cols = N.shape 
+vars = symbols('x1:%d' % (N_rows+1))
+lamb = symbols('l1:%d' % (N_rows+1))
+lamb = Matrix(lamb)
+x = Matrix(vars)
+print("x = ")
+pprint(x)
+print("lamb = ")
+pprint(lamb)
+print("type of var = ",type(x[0]))
+print("xT N x + xTbb = ")
+f = x.T * N * x + x.T * bb
+f = f[0]
+print(f)
+ST = N * x + bb
+print("ST = ")
+pprint(ST)
+F = f + (lamb.T * ST)[0]
+print("F = ",F)
+variables = x.col_join(lamb)
+G = Matrix([F.diff(var) for var in variables])
+
+
 
 # 测试M正确性的多项式1
 # x1,x2,x3 = symbols('x1 x2 x3')
@@ -291,7 +341,7 @@ GH = homogeneous.homogeneous(G)
 print("GH = ",GH)
 
 # 固定某个变量作为常数，用辅助变量v0替换它的位置
-alter_variable = y
+alter_variable = x[0]
 
 GH_aux = homogeneous.alter(GH,alter_variable)
 print("GH_aux = ",GH_aux)
@@ -331,7 +381,8 @@ print("M =",M)
 # M = Matrix(M)
 print("rank of M  =",M.rank())
 nullspace_basis = M.nullspace()
-print("kernel of M = ",nullspace_basis)
+print("kernel of M = ")
+pprint(nullspace_basis)
 rows,cols = M.shape
 print("rows = ",rows,"cols = ",cols)
 # A = Matrix((ros+1,cols+1))
@@ -343,6 +394,7 @@ def generate_A(M):
     rows,cols = M.shape
     A = zeros(rows+1,cols+1)
     nullspace = M.nullspace()
+    nullspaceT = (M.T).nullspace()
     if nullspace == []:
         c = 0.1
         # a = Matrix([round(random.uniform(-c, c),2) for _ in range(rows)])
@@ -361,8 +413,125 @@ def generate_A(M):
         A[0:rows,cols:cols+1] = a
         A[rows:rows+1,0:cols] = b.T
     else:
+        # 向量转矩阵
+        M_nullspace = nullspace[0]
+        rest_space = nullspace[1:]
+        for col in rest_space:
+            M_nullspace = M_nullspace.row_join(col)
+        # print("M_nullspace =")
+        # pprint(M_nullspace)
+        # constants = zeros(M_nullspace.rows, 1)
+        # ot_space = M_nullspace.gauss_jordan_solve(constants)
+        # print("otspace:")
+        # pprint(ot_space)
+        # echelon = M_nullspace.echelon_form()
+        # print("echelon = ")
+        # pprint(echelon)
+        othcom = M.rowspace()
+        othcom = Matrix(othcom)
+        print("othcom = ")
+        pprint(othcom)
+        o_rows,o_cols = othcom.shape
+        print("rows = ",o_rows,"cols = ",o_cols)
+        print("rank of N = ",N.rank(),"rank of oth =",othcom.rank())
+        # pprint(othcom * M_nullspace)
+        o_vars = Matrix(symbols('o1:%d'%(o_cols+1)))
+        # print("O_vars = ")
+        # pprint(o_vars)
+        b_Matrix = (othcom.T).row_join(o_vars)
+        # print("b_Matrix =")
+        # pprint(b_Matrix)
+        b_echelon = b_Matrix.echelon_form()
+        # print("b-echelon = ")
+        # pprint(b_echelon)
+        b1 = b_echelon[:,-1]
+        # print("b = ")
+        # pprint(b1)
+        b1_last_nonzero = None
+        for value in b1:
+            if value != 0:
+                b1_last_nonzero = value
+        # print("last non zero =")
+        # pprint(b1_last_nonzero)
+        b_vars = b1_last_nonzero.free_symbols
+        # print("b_vars = ")
+        # pprint(b_vars)
+        ob = b_vars.pop()
+        # print("ob = ",ob)
+        # print("type of ob = ",type(ob))
+        b_final = Matrix([1 if var == ob else 0 for var in o_vars])
+        print("b_final = ")
+        pprint(b_final)
+        b_final_matrix = (othcom.T).row_join(b_final)
+        print("rank of b_Matrix = ",b_Matrix.rank(),"rank of oth =",othcom.rank())
+        print("rank of b_final_matrix = ",b_final_matrix.rank())
+
+        
+
+        MT_nullspace = nullspaceT[0]
+        rest_spaceT = nullspaceT[1:]
+        for col in rest_spaceT:
+            MT_nullspace = MT_nullspace.row_join(col)
+        print("MT_nullspace =")
+        pprint(MT_nullspace)
+        constants = zeros(MT_nullspace.rows, 1)
+        ot_spaceT = MT_nullspace.gauss_jordan_solve(constants)
+        print("otspace:")
+        pprint(ot_spaceT)
+        echelonT = MT_nullspace.echelon_form()
+        print("echelonT = ")
+        pprint(echelonT)
+        othcomT = (M.T).rowspace()
+        othcomT = Matrix(othcomT)
+        print("othcomT = ")
+        pprint(othcomT)
+        oT_rows,oT_cols = othcomT.shape
+        print("rows = ",oT_rows,"cols = ",oT_cols)
+        print("rank of N = ",N.rank(),"rank of oth =",othcomT.rank())
+        pprint(othcomT * MT_nullspace)
+        oT_vars = Matrix(symbols('oT1:%d'%(oT_cols+1)))
+        print("OT_vars = ")
+        pprint(oT_vars)
+        a_Matrix = (othcomT.T).row_join(oT_vars)
+        print("a_Matrix =")
+        pprint(a_Matrix)
+        a_echelon = a_Matrix.echelon_form()
+        print("a_echelon = ")
+        pprint(a_echelon)
+        a1 = a_echelon[:,-1]
+        print("a1 = ")
+        pprint(a1)
+        a1_last_nonzero = None
+        for value in a1:
+            if value != 0:
+                a1_last_nonzero = value
+        print("a1 last non zero =")
+        pprint(a1_last_nonzero)
+        a_vars = a1_last_nonzero.free_symbols
+        print("a_vars = ")
+        pprint(a_vars)
+        oa = a_vars.pop()
+        print("oa = ",oa)
+        print("type of oa = ",type(oa))
+        a_final = Matrix([1 if var == oa else 0 for var in oT_vars])
+        print("a_final = ")
+        pprint(a_final)
+
+        A[0:rows,0:cols] = M[:,:]
+        print("rank of A[0:rows,0:cols] = M[:,:] = ",A.rank())
+        A[0:rows,cols:cols+1] = a_final
+        print("A[0:rows,cols:cols+1] = a_final = ",A.rank())
+        A[rows:rows+1,0:cols] = b_final.T
+        print("A[rows:rows+1,0:cols] = b_final.T = ",A.rank())
+
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         print("矩阵的核不是零向量,找ab的函数还没有写")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
     return A
+
 
 # 当M的核是零向量的时候，a和b都是随机生成的，这会导致解出的t每次都不一样
 # 现在用的是全为1的列向量，但a和b要满足什么关系还不清楚
@@ -370,14 +539,16 @@ def generate_A(M):
 A = generate_A(M)
 b = zeros(rows+1,1)
 b[rows] = 1
-pprint(b)
-print("rank of A = ",A.rank())
+# pprint(b)
 pprint(A)
+print("rows of A =",rows+1)
+print("rank of A = ",A.rank())
+print("rank of M = ",M.rank())
 sol = A.solve(b)
 # pprint(sol)
 t = sol[rows]
 print("t =",t)
-plot(t, (alter_variable, -1, 1))
+plot(t, (alter_variable, -0.7, 0.9))
 solu = list()
 for value in np.arange(-1,1,0.01):
     result = t.subs(alter_variable,value)
