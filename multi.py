@@ -7,23 +7,98 @@ import random
 import copy
 import homogeneous
 from decimal import Decimal
-
-
+import numpy as np
+from scipy.linalg import eig
 init_printing(use_unicode=True)
 # 生成多项式的多重结果矩阵
 # 输入多项式系统（n个变量n个方程），得到每个方程的degree：ri和系数、
 
 # 2004年论文的第一个例子
-x,y,z = symbols('x y z')
-G1 = x**2 + y**2 + z**2 -1
-G2 = z - x**2 - y**2
-G3 = y - x**2 -z**2
-variables = [x,y,z]
-G = [
-    G1,
-    G2,
-    G3
-] 
+# x,y,z = symbols('x y z')
+# G1 = x**2 + y**2 + z**2 -1
+# G2 = z - x**2 - y**2
+# G3 = y - x**2 -z**2
+# variables = [x,y,z]
+# G = [
+#     G1,
+#     G2,
+#     G3
+# ] 
+
+# 2004年论文的第二个例子
+# x,y,z = symbols('x y z')
+# G1 = y**4 - 20/7*x**2
+# G2 = x**2*z**4 + 7/10*x*z**4 + 7/48*z**4 -50/27*x**2 - 35/27*x - 49/216
+# G3 = 3/5*x**6*y**2*z + x**5*y**3 + 3/7*x**5*y**2*z + 7/5*x**4*y**3 - 7/20*x**4*y*z**2 -3/20*x**4*z**3 + 609/1000*x**3*y**3 + 63/200*x**3*y**2*z - 77/125*x**3*y*z**2 -21/50*x**3*z**3 + 49/1250*x**2*y**3 +147/2000*x**2*y**2*z - 23863/60000*x**2*y*z**2 -91/400*x**2*z**3 -27391/800000*x*y**3 + 4137/800000*x*y**2*z -1078/9375*x*y*z**2 - 5887/200000*x*z**3 - 1029/160000*y**3 -24353/1920000*y*z**2 - 343/128000*z**3 
+# variables = [x,y,z]
+# G = [
+#     G1,
+#     G2,
+#     G3
+# ]
+# 三层博弈树
+# N = [
+#     [0 ,0,0 ,0 ,0 ,0 ,0 ,1 ,-1, -1, 1, 0, 0, 0, 0],
+#     [0 ,0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0],
+#     [0 ,0 ,0 ,0 ,0 ,-10, 100, 0, 1, 0, -1, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1, -1, 1],
+#     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1],
+#     [0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1],
+#     [0, 0, -100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1],
+#     [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+#     [1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#     [-1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, -1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+# ]
+# bb = [0,0,0,0,0,0,0,1,0,-1,0,1,0,-1,0]
+N = [
+    [0,0,0,0,0,1,-1,0,0],
+    [0,0,0,-10,100,1,-1,0,0],
+    [0,0,0,0,0,0,0,1,-1],
+    [0,-10,0,0,0,0,0,1,-1],
+    [0,-100,0,0,0,0,0,1,-1],
+    [-1,-1,0,0,0,0,0,0,0],
+    [1,1,0,0,0,0,0,0,0],
+    [0,0,-1,-1,-1,0,0,0,0],
+    [0,0,1,1,1,0,0,0,0]
+]
+bb = [0,0,0,0,0,1,-1,1,-1]
+N = Matrix(N)
+bb = Matrix(bb)
+print("N = ")
+pprint(N)
+print("bb = ")
+pprint(bb)
+
+N_rows,N_cols = N.shape 
+vars = symbols('x1:%d' % (N_rows+1))
+lamb = symbols('l1:%d' % (N_rows+1))
+lamb = Matrix(lamb)
+x = Matrix(vars)
+print("x = ")
+pprint(x)
+print("lamb = ")
+pprint(lamb)
+print("type of var = ",type(x[0]))
+print("xT N x + xTbb = ")
+f = x.T * N * x + x.T * bb
+f = f[0]
+print(f)
+ST = N * x + bb
+print("ST = ")
+pprint(ST)
+F = f + (lamb.T * ST)[0]
+print("F = ",F)
+variables = x.col_join(lamb)
+G = Matrix([F.diff(var) for var in variables])
+G_rows,G_cols = G.shape
+print("G_rows = ",G_rows,"G-cols = ",G_cols)
+
+
 
 # 测试M正确性的多项式1
 # x1,x2,x3 = symbols('x1 x2 x3')
@@ -80,7 +155,7 @@ G = [
 # 齐次项的次数：d = 1-n+sum（ri）
 # 矩阵M和逆序向量beta的维度：C_sum(ri)^(n-1)
 # 多项式的项数:terms
-def getInfo_rsdn(system):
+def getInfo_rsdn(system,alter_variable):
     G = system
     r = []
     terms = 0
@@ -95,16 +170,20 @@ def getInfo_rsdn(system):
         for g_term in g_terms:
             # 把term的系数取出来，as_coeff_mul()返回一个元组
             # coefficient = term.as_coeff_mul()[0]
-            origin,aux_var_term = g_term.as_independent(homogeneous.v0)
+            origin,aux_var_term = g_term.as_independent(alter_variable)
             # print("origin = ",origin,"aux_var_term = ",aux_var_term)
             if total_degree(origin) > g_degree:
                 g_degree = total_degree(origin)
+            # print("g = ",g,"origin = ",origin,"g_total_degree = ",g_degree)
         r.append(g_degree)
     n = len(system)
     sumr = 0
     for ri in r:
         sumr += ri
     d = 1 - n + sumr
+    # print("sumr = ",sumr,"n = ",n)
+    # print("rn = ",r)
+
     s = (math.factorial(sumr))/((math.factorial(n-1))*math.factorial(sumr - n +1))
     for g in G:
         # print("g = ",g,"type of g = ",type(g))
@@ -174,7 +253,7 @@ def find_terms(expression,alter_variable,rest_var_list):
         first_value = next(iter(coeff_dict.values()))
         if first_value.is_negative:
             coefficient = -coefficient
-        print("term = ",term,"others = ",others,"coefficient = ",coefficient)
+        # print("term = ",term,"others = ",others,"coefficient = ",coefficient)
         powers = [others.as_powers_dict().get(var, 0) for var in rest_var_list]
         coef.append(coefficient)
         for pow in powers:
@@ -286,63 +365,90 @@ def secant(func,var,start,end,iterations):
 
 
 # G在最开始输入，可能是非齐次的方程组
-# 把输入的方程组齐次化
-GH = homogeneous.homogeneous(G)
-print("GH = ",GH)
+print("G = ",G)
+pprint(Matrix(G))
 
 # 固定某个变量作为常数，用辅助变量v0替换它的位置
-alter_variable = y
+vr,vc = x.shape
+print("row = ",vr,"col = ",vc)
+for i in range(vr):
+    print("--------------------------------------------------")
+    print("var = ",x[i])
+    print("--------------------------------------------------")
+    alter_variable = x[i]
+    # 获得方程组的信息
+    # 方程组中每个多项式的degree：r 存入一个列表rn中
+    # 系统的degree:sumr
+    # 齐次项的次数：d = 1-n+sum（ri）
+    # 矩阵M和逆序向量beta的维度：C_sum(ri)^(n-1)
+    # 多项式的项数:terms
+    # 矩阵维数=变量个数=方程个数=n
+    sumr,s,d,n,terms,rn = getInfo_rsdn(G,alter_variable)
+    print("rn =",rn,"s = ",s,"terms = ",terms)
+    # 把输入的方程组齐次化
+    GH = homogeneous.homogeneous(G,alter_variable=alter_variable)
+    print("GH = ",GH)
 
-GH_aux = homogeneous.alter(GH,alter_variable)
-print("GH_aux = ",GH_aux)
+    # # 把固定变量看作常数，用辅助变量替代它的位置
+    # GH_aux = homogeneous.alter(GH,alter_variable)
+    # print("GH_aux = ",GH_aux)
 
-# 合并同类项，返回去除固定变量的变量列表（维度一致，新增了一个辅助变量）
-G_merge,rest_var_list = merge(GH_aux,alter_variable=alter_variable)
-print("G_merge = ",G_merge)
-
-# 获得方程组的信息
-# 方程组中每个多项式的degree：r 存入一个列表rn中
-# 系统的degree:sumr
-# 齐次项的次数：d = 1-n+sum（ri）
-# 矩阵M和逆序向量beta的维度：C_sum(ri)^(n-1)
-# 多项式的项数:terms
-# 矩阵维数=变量个数=方程个数=n
-sumr,s,d,n,terms,rn = getInfo_rsdn(G_merge)
-print("rn =",rn,"terms = ",terms)
-# 初始化所需要的矩阵，现在是数值矩阵，需要用Matrix强转为符号矩阵
-M = np.zeros((s,s))
-B = np.zeros((s,n))
-dG = np.zeros((n,terms*n))
-cG = Matrix(np.zeros((n,terms)))
-print("prime cG = ",cG,"prime dG = ",dG)
+    # 合并同类项，返回去除固定变量的变量列表（维度一致，新增了一个辅助变量）
+    G_merge,rest_var_list = merge(GH,alter_variable=alter_variable)
+    # print("G_merge = ",G_merge,"rest_var_list = ",rest_var_list)
 
 
-dG,cG = getG(G_merge,alter_variable=alter_variable,rest_var_list=rest_var_list)
-print("dG  = ",dG)
-print("cG  = ",cG)
+    # 初始化所需要的矩阵，现在是数值矩阵，需要用Matrix强转为符号矩阵
+    M = np.zeros((s,s))
+    B = np.zeros((s,n))
+    dG = np.zeros((n,terms*n))
+    cG = Matrix(np.zeros((n,terms)))
+    # print("prime cG = ",cG,"prime dG = ",dG)
 
-M = getM(dG,cG)
-print("------------------------------M-------------------------------")
-print("M =",M)
-# print("type of M = ",type(M))
-# print("det(M) = ",np.linalg.det(M))
+
+    dG,cG = getG(G_merge,alter_variable=alter_variable,rest_var_list=rest_var_list)
+    # print("dG  = ",dG)
+    # print("cG  = ",cG)
+
+    M = getM(dG,cG)
+    print("------------------------------M-------------------------------")
+    print("M =")
+    pprint(M)
+    # print("type of M = ",type(M))
+    # print("det(M) = ",np.linalg.det(M))
+    rows,cols = M.shape
+    print("rows = ",rows,"cols = ",cols)
+    for val in np.arange(0.9,1.1,0.001):
+        M_num = M.subs(alter_variable,val)
+        MM = M_num*M_num.T
+        M_float = np.zeros((s,s))
+        for i in np.arange(rows):
+            for j in np.arange(cols):
+                M_float[i][j] = float(MM[i,j])
+        eigenvalues, eigenvectors = np.linalg.eig(M_float)
+        print("x = ",val,"最小特征值=",eigenvalues.min())
+    print("fixed var = ",alter_variable)
+
+
+
 
 # 解线性方程组
 # M = Matrix(M)
-print("rank of M  =",M.rank())
-nullspace_basis = M.nullspace()
-print("kernel of M = ",nullspace_basis)
-rows,cols = M.shape
-print("rows = ",rows,"cols = ",cols)
+# print("rank of M  =",M.rank())
+# nullspace_basis = M.nullspace()
+# print("kernel of M = ")
+# pprint(nullspace_basis)
+
 # A = Matrix((ros+1,cols+1))
 v = symbols('v')
 A = zeros(rows+1,cols+1)
 # print("type of A = ",type(A),"type of M = ",type(M))
-print("init A = ",A)
+# print("init A = ",A)
 def generate_A(M):
     rows,cols = M.shape
     A = zeros(rows+1,cols+1)
     nullspace = M.nullspace()
+    nullspaceT = (M.T).nullspace()
     if nullspace == []:
         c = 0.1
         # a = Matrix([round(random.uniform(-c, c),2) for _ in range(rows)])
@@ -361,31 +467,153 @@ def generate_A(M):
         A[0:rows,cols:cols+1] = a
         A[rows:rows+1,0:cols] = b.T
     else:
+        # 向量转矩阵
+        M_nullspace = nullspace[0]
+        rest_space = nullspace[1:]
+        for col in rest_space:
+            M_nullspace = M_nullspace.row_join(col)
+        # print("M_nullspace =")
+        # pprint(M_nullspace)
+        # constants = zeros(M_nullspace.rows, 1)
+        # ot_space = M_nullspace.gauss_jordan_solve(constants)
+        # print("otspace:")
+        # pprint(ot_space)
+        # echelon = M_nullspace.echelon_form()
+        # print("echelon = ")
+        # pprint(echelon)
+        othcom = M.rowspace()
+        othcom = Matrix(othcom)
+        print("othcom = ")
+        pprint(othcom)
+        o_rows,o_cols = othcom.shape
+        print("o_rows = ",o_rows,"o_cols = ",o_cols)
+        # print("rank of N = ",N.rank(),"rank of oth =",othcom.rank())
+        # pprint(othcom * M_nullspace)
+        o_vars = Matrix(symbols('o1:%d'%(o_cols+1)))
+        # print("O_vars = ")
+        # pprint(o_vars)
+        b_Matrix = (othcom.T).row_join(o_vars)
+        # print("b_Matrix =")
+        # pprint(b_Matrix)
+        b_echelon = b_Matrix.echelon_form()
+        # print("b-echelon = ")
+        # pprint(b_echelon)
+        b1 = b_echelon[:,-1]
+        # print("b = ")
+        # pprint(b1)
+        b1_last_nonzero = None
+        for value in b1:
+            if value != 0:
+                b1_last_nonzero = value
+        # print("last non zero =")
+        # pprint(b1_last_nonzero)
+        b_vars = b1_last_nonzero.free_symbols
+        # print("b_vars = ")
+        # pprint(b_vars)
+        ob = b_vars.pop()
+        # print("ob = ",ob)
+        # print("type of ob = ",type(ob))
+        b_final = Matrix([1 if var == ob else 0 for var in o_vars])
+        print("b_final = ")
+        pprint(b_final)
+        b_final_matrix = (othcom.T).row_join(b_final)
+        print("rank of b_Matrix = ",b_Matrix.rank(),"rank of oth =",othcom.rank())
+        print("rank of b_final_matrix = ",b_final_matrix.rank())
+
+        
+
+        MT_nullspace = nullspaceT[0]
+        rest_spaceT = nullspaceT[1:]
+        for col in rest_spaceT:
+            MT_nullspace = MT_nullspace.row_join(col)
+        print("MT_nullspace =")
+        pprint(MT_nullspace)
+        constants = zeros(MT_nullspace.rows, 1)
+        ot_spaceT = MT_nullspace.gauss_jordan_solve(constants)
+        print("otspace:")
+        pprint(ot_spaceT)
+        echelonT = MT_nullspace.echelon_form()
+        print("echelonT = ")
+        pprint(echelonT)
+        othcomT = (M.T).rowspace()
+        othcomT = Matrix(othcomT)
+        print("othcomT = ")
+        pprint(othcomT)
+        oT_rows,oT_cols = othcomT.shape
+        print("rows = ",oT_rows,"cols = ",oT_cols)
+        print("rank of N = ",N.rank(),"rank of oth =",othcomT.rank())
+        pprint(othcomT * MT_nullspace)
+        oT_vars = Matrix(symbols('oT1:%d'%(oT_cols+1)))
+        print("OT_vars = ")
+        pprint(oT_vars)
+        a_Matrix = (othcomT.T).row_join(oT_vars)
+        print("a_Matrix =")
+        pprint(a_Matrix)
+        a_echelon = a_Matrix.echelon_form()
+        print("a_echelon = ")
+        pprint(a_echelon)
+        a1 = a_echelon[:,-1]
+        print("a1 = ")
+        pprint(a1)
+        a1_last_nonzero = None
+        for value in a1:
+            if value != 0:
+                a1_last_nonzero = value
+        print("a1 last non zero =")
+        pprint(a1_last_nonzero)
+        a_vars = a1_last_nonzero.free_symbols
+        print("a_vars = ")
+        pprint(a_vars)
+        oa = a_vars.pop()
+        print("oa = ",oa)
+        print("type of oa = ",type(oa))
+        a_final = Matrix([1 if var == oa else 0 for var in oT_vars])
+        print("a_final = ")
+        pprint(a_final)
+
+        A[0:rows,0:cols] = M[:,:]
+        print("rank of A[0:rows,0:cols] = M[:,:] = ",A.rank())
+        A[0:rows,cols:cols+1] = a_final
+        print("A[0:rows,cols:cols+1] = a_final = ",A.rank())
+        A[rows:rows+1,0:cols] = b_final.T
+        print("A[rows:rows+1,0:cols] = b_final.T = ",A.rank())
+
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         print("矩阵的核不是零向量,找ab的函数还没有写")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
     return A
+
 
 # 当M的核是零向量的时候，a和b都是随机生成的，这会导致解出的t每次都不一样
 # 现在用的是全为1的列向量，但a和b要满足什么关系还不清楚
 # 现在这一版的割线法有问题，不能逼近解，简单函数没有问题，应该是和函数的性质有关
-A = generate_A(M)
-b = zeros(rows+1,1)
-b[rows] = 1
-pprint(b)
-print("rank of A = ",A.rank())
-pprint(A)
-sol = A.solve(b)
-# pprint(sol)
-t = sol[rows]
-print("t =",t)
-plot(t, (alter_variable, -1, 1))
-solu = list()
-for value in np.arange(-1,1,0.01):
-    result = t.subs(alter_variable,value)
-    # pre = result
-    # after = t.subs(alter_variable,value+0.05)
-    # print("Pre = ",pre,"after = ",after)
-    # if pre*after < 0:
-    #     solu.append(secant(t,x,pre,after,100))
-    print("value = ",value,"result = ",result)
+# A = generate_A(M)
+# b = zeros(rows+1,1)
+# b[rows] = 1
+# # pprint(b)
+# pprint(A)
+# print("rows of A =",rows+1)
+# # print("rank of A = ",A.rank())
+# print("rank of M = ",M.rank())
+# sol = A.LUsolve(b)
+# # pprint(sol)
+# t = sol[rows]
+# print("t =",t)
+# # plot(t, (alter_variable, -1, 1))
+# solu = list()
+# for value in np.arange(-3,3,0.1):
+#     result = t.subs(alter_variable,value)
+#     # pre = result
+#     # after = t.subs(alter_variable,value+0.05)
+#     # print("Pre = ",pre,"after = ",after)
+#     # if pre*after < 0:
+#     #     solu.append(secant(t,x,pre,after,100))
+#     print("value = ",value,"result = ",result)
 
-print("solu = ",solu)
+# print("M rank after subs  = ",M.rank())
+# print("M.subs = ",M.subs(alter_variable,1))
+# print("rank of M.subs = ",(M.subs(alter_variable,1)).rank())
+# print("solu = ",solu)
