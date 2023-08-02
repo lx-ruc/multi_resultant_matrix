@@ -37,7 +37,23 @@ v0 = symbols('v0')
 # 非齐次转化为齐次
 # 输入一个多项式系统，把所有项的次数都用辅助变量补到最高次
 # 选定一个变量xi作为常数，把这个变量用xi*v0代替，这时多项式还是齐次的
-def homogeneous(system):
+def homogeneous(system,alter_variable):
+  # r_total 是去掉固定变量后的多项式的次数
+    r_total = []
+    for g in system:
+        # 把输入的表达式拆分成每一项，生成一个列表
+        g_degree = 0
+        g_terms = g.args
+        # print("g_terms = ",g_terms)
+        # variables = expression.free_symbols
+        for g_term in g_terms:
+            # 把term的系数取出来，as_coeff_mul()返回一个元组
+            # coefficient = term.as_coeff_mul()[0]
+            rest,alter_var = g_term.as_independent(alter_variable)
+            if total_degree(rest) > g_degree:
+                g_degree = total_degree(rest)
+        r_total.append(g_degree)
+
     # TCDlist存的是每个多项式的每一项的（项（Term）、系数（Coefficient）、次数（Degree））
     TCDlist = list()
     G1 = []
@@ -50,20 +66,24 @@ def homogeneous(system):
             degree = term.as_powers_dict().items()
             totaldegree = 0
             for term1,deg in degree:
+                if term1 == alter_variable:
+                  continue
                 totaldegree += deg
             temp_list.append((term,coefficient,totaldegree))
         TCDlist.append(temp_list)
+    # print("TCD_list = ",TCDlist)
+    ri = 0
+
     for TCDs in TCDlist:
         poly = None
-        maxdegree = 0
+        maxdegree = r_total[ri]
+        ri += 1
         i = 0
         for tcd in TCDs:
             t,c,d = tcd
-            if d > maxdegree:
-                maxdegree = d
             # sympy认为常数的次数为1,这里只要有一项是常数，就直接把次数置为0
             if isinstance(t,smp.core.numbers.Number):
-                print("------- t = ",t)
+                # print("------- t = ",t)
                 temp = (tcd[0],tcd[1],0)
                 TCDs[i] = temp
             i+=1
@@ -75,10 +95,10 @@ def homogeneous(system):
     # print("G1 = ",G1)
     return G1
 
+# 先判断每固定变量后的每个多项式最高次是多少，然后再补齐
 def alter(system,variable):
     F = system
     t = variable
-    print("F = ",F)
     G = []
     for f in F:
         # print("f = ",f)
