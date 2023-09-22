@@ -1,11 +1,5 @@
 import sympy as smp
 from sympy import *
-import numpy as np
-import pandas as pd
-import math
-import pprint
-import copy
-
 
 # 输入多项式
 # x1,x2,x3 = symbols('x1 x2 x3')

@@ -1,0 +1,7 @@
+<__main__.TreeNode object at 0x7fbec020bbb0>
+  <__main__.TreeNode object at 0x7fbec020bb50>
+    <__main__.TreeNode object at 0x7fbec1137fd0>
+      <__main__.TreeNode object at 0x7fbeb062b9d0>
+    <__main__.TreeNode object at 0x7fbeb0658340>
+    <__main__.TreeNode object at 0x7fbeb06583a0>
+  <__main__.TreeNode object at 0x7fbec11b4850>

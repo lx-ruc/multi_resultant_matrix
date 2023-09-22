@@ -1,0 +1,7 @@
+id: root, variable: 0, isfinal: False
+  id: 1, variable: 1, isfinal: False
+    id: 4, variable: 4, isfinal: False
+    id: 5, variable: 5, isfinal: False
+    id: 6, variable: 6, isfinal: False
+  id: 2, variable: 2, isfinal: False
+  id: 3, variable: 3, isfinal: False
